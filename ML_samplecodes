@@ -1,0 +1,193 @@
+#Sample 1:
+#Scikit-Learn
+wine = load_wine()
+
+# Let's take a look at the general format of the sample datasets.
+print(type(wine))
+print("keys:\n", wine.keys())  # components of dataset
+print("data:\n", wine.data, type(wine.data), wine.data.shape)  # features
+print("target:\n", wine.target, type(wine.target), wine.target.shape)  # labels
+print("frame:\n", wine.frame, type(wine.frame))
+print("feature_name:\n", wine.feature_names, type(wine.feature_names))  # feature description
+print("target_name:\n", wine.target_names, type(wine.target_names), wine.target_names.shape) # label description
+
+# find X
+X = pd.DataFrame(wine.data, columns=wine.feature_names)
+X.head(4)
+
+# find y
+y = pd.Series(wine.target)
+print(y)
+
+# divide the X and y data into 2 parts: training data and testing data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+
+# We try a few common classifiers to see which one works best
+classifiers = [
+    KNeighborsClassifier(3),
+    DecisionTreeClassifier(),
+    RandomForestClassifier(),
+    GaussianNB()
+    ]
+
+# go through each classifier
+for classifier in classifiers:
+    # train the classifier
+    classifier.fit(X_train, y_train)  
+    # test the trained classifier
+    y_output = classifier.predict(X_test)
+    # compare the predicted output with the actual output
+    print(classifier)
+    print(f"score: {f1_score(y_test, y_output, average='weighted'):.3f}")
+    
+# the f1 score shows how close the classifier output is to the actual label. 
+# A score of 1.0 is a perfect match, a score of 0.0 is no match
+
+#Sample 2: 
+#Decision Tree
+
+#import data
+a = pd.read_csv("zoo.csv") 
+print(a.shape)
+a.head()
+
+#Create the X data, which is the DataFrame a but with no 'animal_name' or 'class_type' columns.
+#Create the y data, which is the 'class_type' column.
+#Print the size of X and y, and show the first 5 lines of X
+y = a.class_type 
+X = a.drop(columns=['animal_name','class_type'])
+print(y.shape)
+print(X.shape)
+X.head()
+
+#Split the data into a training set and a test set.
+X_train, X_test, y_train, y_test = train_test_split(X,y,test_size=0.25)
+print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+
+#Create the decision tree regressor and train the regressor.
+from sklearn.tree import DecisionTreeRegressor
+
+regr = DecisionTreeRegressor()
+regr = regr.fit(X_train, y_train)
+
+#See how well the regressor works
+y_pred = regr.predict(X_test)
+df = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred})
+print(df.shape)
+df
+
+metrics.accuracy_score(y_test, y_pred)   
+# accuracy score between 0 and 1, with 1 being 100% accurate
+
+# another way to see how well the model works is with the confusion matrix
+print(metrics.confusion_matrix(y_test, y_pred, labels=np.arange(1,8)))
+
+#Sample 3
+#K Nearest Neighbor
+
+from sklearn.neighbors import KNeighborsClassifier
+
+classifier = KNeighborsClassifier(n_neighbors=5)
+classifier = classifier.fit(X_train, y_train)
+y_pred = classifier.predict(X_test)
+
+#Check how well the classifier works
+df = pd.DataFrame({'Actual': y_test, 'Predicted': y_pred})
+print(df.shape)
+
+metrics.accuracy_score(y_test, y_pred)
+
+print(metrics.confusion_matrix(y_test, y_pred, labels=np.arange(1,8)))
+
+# we loop through K values from 1 to 50, using the same X and y datasets
+errors = []
+for i in np.arange(1, 50):
+    c = KNeighborsClassifier(n_neighbors = i)
+    c.fit(X_train, y_train)
+    y_pred = c.predict(X_test)
+    errors.append(np.mean(y_pred != y_test))
+    
+# see what the error rate looks like
+plt.style.use('seaborn-whitegrid')
+plt.plot(errors)
+
+df
+
+#Sample 4
+#Natural language Processing with NLTK
+
+# Sample line of text from python.org
+s = '''Python is a programming language that lets you work quickly and integrate systems more effectively.
+It's a programmer friendly language.'''  # adding a second line of text
+
+from nltk.tokenize import word_tokenize   # separate text into words
+
+words = word_tokenize(s)
+print(words)
+
+
+from nltk.tokenize import RegexpTokenizer
+
+tokenizer = RegexpTokenizer('\w+')   # \w is [0-9a-zA-Z_]   +  is 1 or more of the previous char
+only_words = tokenizer.tokenize(s)
+print(only_words)
+
+#count of occurrences of words.
+freqD = nltk.FreqDist(only_words)
+for key,val in freqD.items():
+    print(str(key) + ':' + str(val))
+print(len(freqD))
+
+#Stemming
+from nltk.stem import PorterStemmer
+
+stemmer = PorterStemmer()
+stemmed=[stemmer.stem(w) for w in only_words]
+print("Words",only_words)
+print()
+print("Stems:",stemmed)
+
+#Part of speech tagging
+wordTags = nltk.pos_tag(only_words)   
+print(wordTags)
+
+#Text classification
+#Download and install the names library from NLTK
+nltk.download('names')    # (only need to run this one time to download and install
+
+#Get a list of male and female names from the NLTK library, assign labels to them, and randomize the order
+from nltk.corpus import names
+ 
+allnames = ([(name, 'male') for name in names.words('male.txt')] +
+            [(name, 'female') for name in names.words('female.txt')])
+print(len(allnames))
+print(allnames[:2], allnames[-2:])   # alphabetical order
+random.shuffle(allnames)             # random order
+print(allnames[:2], allnames[-2:])
+
+#Get feature set;
+def getFeature(word): 
+    return {'lett': word[-1]}  # use last letter as feature
+
+# Using the function getFeature above, create the list which is the feature set.
+# The feature set is described in the previous cell
+featureSet = [(getFeature(n), g) for (n,g) in allnames]
+print(len(featureSet))
+print(featureSet[:2], featureSet[-2:])
+
+#Split the dataset into a training and testing set, then use the training set to train the classifer
+from nltk.classify import NaiveBayesClassifier
+
+train_set, test_set = train_test_split(featureSet,test_size=0.2)
+print(len(train_set), len(test_set))
+classifier = nltk.NaiveBayesClassifier.train(train_set)
+
+#Check the classifier accuracy
+nltk.classify.accuracy(classifier, test_set)
+classifier.show_most_informative_features(10)
+
+
+
+
+
